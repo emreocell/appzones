@@ -629,6 +629,19 @@ os.write(w, b"\\n"); os.close(w)
                 except OSError:
                     pass
 
+    def test_version_flag(self):
+        """`appzones --version` and `-V`: the package version (a placeholder in a source checkout) and the config release."""
+        sys.path.insert(0, str(HERE))
+        import zone as entry
+        entry = importlib.reload(entry)
+        for flag in ("--version", "-V"):
+            with contextlib.redirect_stdout(io.StringIO()) as out:
+                self.assertEqual(entry.main([flag]), 0)
+            self.assertEqual(out.getvalue(), f"appzones unknown (config release {entry.zonecfg.RELEASE})\n")
+        # what nix/package.nix substitutes at build time
+        entry.VERSION = "1.2.3"
+        self.assertEqual(entry.version_line(), f"appzones 1.2.3 (config release {entry.zonecfg.RELEASE})")
+
     def test_serve_arguments(self):
         """`appzones serve ZONE [--notify-fd N]`; `_supervise ZONE` still works (units still running)."""
         sys.path.insert(0, str(HERE))

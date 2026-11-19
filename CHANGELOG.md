@@ -5,6 +5,10 @@ The config schema has its own release number (`requires = N` in
 
 ## Unreleased
 
+- **`appzones --version`** (and `-V`) prints the package version and the config release,
+  e.g. `appzones 0.7.0 (config release 5)`, for bug reports and `requires = N` mismatches.
+  A source checkout prints `unknown` for the version.
+
 - **A zone answers its own DNS** (#64): zone-init listens on `127.0.0.53` in
   the zone and hands each query over `/run/zone/dns.sock` to the zone's server,
   which asks the host's resolver (`dns = "host"`, also a loopback one like
