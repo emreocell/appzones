@@ -708,6 +708,42 @@ os.write(w, b"\\n"); os.close(w)
         finally:
             zone.shutil.which = real
 
+    def test_tool_lookup(self):
+        """A helper is found on PATH, then in /usr/sbin and /sbin (nft on Debian); APPZONES_BIN_<NAME> wins."""
+        zone = self._zone_mod()
+        t = Path(self.tmp.name)
+        path, sbin, other = t / "path", t / "sbin", t / "other-sbin"
+        for d in (path, sbin, other):
+            d.mkdir()
+
+        def make(d, name):
+            f = d / name
+            f.write_text("#!/bin/sh\n")
+            f.chmod(0o755)
+            return str(f)
+
+        zone.SBIN_DIRS = (str(sbin), str(other))
+        old_path = os.environ.get("PATH")
+        os.environ["PATH"] = str(path)  # a normal user's PATH: no sbin
+        try:
+            in_sbin = make(sbin, "nft")
+            self.assertEqual(zone.tool("nft"), in_sbin)  # not on PATH: found in the sbin directory
+            on_path = make(path, "nft")
+            self.assertEqual(zone.tool("nft"), on_path)  # PATH comes first
+            override = make(other, "my-nft")
+            os.environ["APPZONES_BIN_NFT"] = override
+            self.assertEqual(zone.tool("nft"), override)  # the override beats both
+            del os.environ["APPZONES_BIN_NFT"]
+            with contextlib.redirect_stderr(io.StringIO()) as err, self.assertRaises(SystemExit):
+                zone.tool("pasta")  # nowhere: it dies, naming where it looked
+            self.assertIn("pasta not found on PATH, " + ", ".join(zone.SBIN_DIRS), err.getvalue())
+        finally:
+            os.environ.pop("APPZONES_BIN_NFT", None)
+            if old_path is None:
+                os.environ.pop("PATH", None)
+            else:
+                os.environ["PATH"] = old_path
+
     def test_active(self):
         """appzones active: the zone from the window's compositor tag; zone:? is a sandbox it cannot name."""
         import json as js

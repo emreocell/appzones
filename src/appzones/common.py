@@ -46,10 +46,16 @@ PALETTE = ["#a6e3a1", "#89b4fa", "#f38ba8", "#f9e2af", "#cba6f7", "#94e2d5", "#f
            "#74c7ec", "#eba0ac", "#b4befe", "#89dceb"]
 
 
+# where a host keeps root's tools (nft on Debian) that a user's PATH lacks
+SBIN_DIRS = ("/usr/sbin", "/sbin")
+
+
 def tool(name: str) -> str:
-    p = zonecfg.env("BIN_" + name.upper().replace("-", "_")) or shutil.which(name)
+    """A helper program: $APPZONES_BIN_<NAME>, else the first one on PATH, else in /usr/sbin or /sbin."""
+    p = (zonecfg.env("BIN_" + name.upper().replace("-", "_")) or shutil.which(name)
+         or shutil.which(name, path=os.pathsep.join(SBIN_DIRS)))
     if not p:
-        die(f"{name} not found on PATH")
+        die(f"{name} not found on PATH, {', '.join(SBIN_DIRS)}")
     return p
 
 

@@ -5,6 +5,12 @@ The config schema has its own release number (`requires = N` in
 
 ## Unreleased
 
+- **Host tools in `/usr/sbin` and `/sbin`** (#63): appzones looks for `nft`, `bwrap`,
+  `pasta` and its other helpers on `PATH`, then in `/usr/sbin` and `/sbin`. On Debian
+  `nft` lives in `/usr/sbin`, which a user's `PATH` lacks, so a zone with
+  `network = "internet"` did not start ("nft not found on PATH"). `APPZONES_BIN_<NAME>`
+  still overrides.
+
 - **A zone answers its own DNS** (#64): zone-init listens on `127.0.0.53` in
   the zone and hands each query over `/run/zone/dns.sock` to the zone's server,
   which asks the host's resolver (`dns = "host"`, also a loopback one like
