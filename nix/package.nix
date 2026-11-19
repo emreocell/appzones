@@ -59,7 +59,9 @@ runCommand "appzones-${version}"
   ''
     lib=$out/libexec/appzones
     mkdir -p $lib $out/bin $out/share/appzones
-    cp ${src}/zone.py $lib/zone.py
+    cp --no-preserve=mode ${src}/zone.py $lib/zone.py
+    # `appzones --version` prints the package version
+    substituteInPlace $lib/zone.py --replace-fail '@version@' '${version}'
     cp -r --no-preserve=mode ${src}/appzones $lib/appzones
     cp ${src}/zone_init.py $lib/zone_init.py
     cp ${src}/zonecfg.py $lib/zonecfg.py

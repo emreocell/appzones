@@ -5,6 +5,10 @@ The config schema has its own release number (`requires = N` in
 
 ## Unreleased
 
+- **`appzones --version`** (and `-V`) prints the package version and the config release,
+  e.g. `appzones 0.7.0 (config release 5)`, for bug reports and `requires = N` mismatches.
+  A source checkout prints `unknown` for the version.
+
 - **Host tools in `/usr/sbin` and `/sbin`** (#63): appzones looks for `nft`, `bwrap`,
   `pasta` and its other helpers on `PATH`, then in `/usr/sbin` and `/sbin`. On Debian
   `nft` lives in `/usr/sbin`, which a user's `PATH` lacks, so a zone with

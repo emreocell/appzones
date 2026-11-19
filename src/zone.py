@@ -22,6 +22,7 @@
     appzones up|stop|restart ZONE|--all
     appzones new NAME [-y]                 print a safe zone block; append it to zones.toml with -y
     appzones check [--probe ZONE]          validate zones.toml; --probe also runs isolation probes in ZONE
+    appzones --version | -V                the package version and the config release, for bug reports
     appzones apps                          (re)write launcher entries "App (zone)" from [apps]
     appzones active [--follow] [--json]    "[zone]" for Hyprland's active window (for bars;
                                            --json: Waybar custom-module JSON)
@@ -64,10 +65,23 @@ from appzones.common import die  # noqa: E402
 from appzones import agent, client, mounts, server, upgrade  # noqa: E402
 
 
+# The package version. nix/package.nix replaces the placeholder when it builds the package;
+# running from a source checkout prints "unknown" for it.
+VERSION = "@version@"
+
+
+def version_line() -> str:
+    version = "unknown" if VERSION.startswith("@") else VERSION
+    return f"appzones {version} (config release {zonecfg.RELEASE})"
+
+
 def main(argv: list[str]) -> int:
     if not argv or argv[0] in ("-h", "--help", "help"):
         print(__doc__)
         return 0 if argv else 2
+    if argv in (["--version"], ["-V"]):
+        print(version_line())
+        return 0
     cmd, rest = argv[0], argv[1:]
     if cmd == "_autostart" or not (cmd.startswith("_") or cmd in ("active", "serve")):
         upgrade.migrate_state()
